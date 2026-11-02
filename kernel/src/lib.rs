@@ -3861,6 +3861,19 @@ unsafe extern "sysv64" fn kernel_main(boot_info: *const BootInfo) -> ! {
         kernel_fail("\r\nginux: bootstrap SHA-256 self-test failed\r\n");
     }
     serial_write("\r\nginux: bootstrap SHA-256 known answers verified");
+    if cfg!(feature = "verification-boot") {
+        // Regression (gate 22 / issue #26): a failed, non-suspended Linux init
+        // attempt must release its bootstrap hierarchy frames. The deliberately
+        // invalid payload fails at the first setup stage, before any guest code
+        // runs, so the outcome is deterministic and no vCPU state is entered.
+        if !matches!(
+            address_space::run_linux_init(&[0x00_u8; 16]),
+            address_space::LinuxProcessOutcome::Failed
+        ) {
+            kernel_fail("\r\nginux: invalid Linux init did not fail closed\r\n");
+        }
+        serial_write("\r\nginux: failed-init hierarchy frame release verified");
+    }
     if !arch::x86_64::cpu::enable_container_management() {
         kernel_fail("\r\nginux: domain management activation failed\r\n");
     }

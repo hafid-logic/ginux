@@ -662,6 +662,11 @@ pub(crate) fn run_linux_init(init: &[u8]) -> LinuxProcessOutcome {
         crate::serial_write_u64(u64::from(owned_released));
         crate::serial_write_bytes(b"\r\n");
     }
+    if !valid && owned_released {
+        crate::serial_write_bytes(
+            b"ginux: Linux init hierarchy frames released after failed init\r\n",
+        );
+    }
     if valid && owned_released {
         let (status, syscall) = cpu::linux_runtime_diagnostics();
         if status.is_some_and(|status| status != 0) || syscall.is_some() {

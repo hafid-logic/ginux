@@ -164,6 +164,19 @@ fi
 
 "$repo_root/tests/qemu/check-linux-runtime.sh" "$output_file"
 
+if ! grep -q '^ginux: Linux init setup failed at stage ' "$output_file"; then
+    echo "Boot test failed: the invalid-init regression path did not run." >&2
+    exit 1
+fi
+if ! grep -q '^ginux: Linux init hierarchy frames released after failed init' "$output_file"; then
+    echo "Boot test failed: hierarchy frames were not released after the failed init." >&2
+    exit 1
+fi
+if ! grep -q '^ginux: failed-init hierarchy frame release verified' "$output_file"; then
+    echo "Boot test failed: the failed-init frame-release regression did not verify." >&2
+    exit 1
+fi
+
 if ! grep -q '^ginux: modern virtio network function: 0:3.0' "$output_file" ||
     ! grep -q '^ginux: modern virtio-net PCI capabilities validated' "$output_file" ||
     ! grep -q '^ginux: malformed virtio-net PCI configurations rejected' "$output_file" ||
