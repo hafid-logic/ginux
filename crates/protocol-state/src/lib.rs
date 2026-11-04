@@ -424,11 +424,17 @@ mod tests {
     #[test]
     fn pins_checksum_reference_values() {
         // RFC 1071 worked example: even length, one carry fold.
-        assert_eq!(checksum(&[0x00, 0x01, 0xf2, 0x03, 0xf4, 0xf5, 0xf6, 0xf7]), 0x220d);
+        assert_eq!(
+            checksum(&[0x00, 0x01, 0xf2, 0x03, 0xf4, 0xf5, 0xf6, 0xf7]),
+            0x220d
+        );
         // Known ICMP echo request header before its stored checksum.
         assert_eq!(checksum(&[0x08, 0x00, 0xbe, 0xef, 0x00, 0x01]), 0x390f);
         // With the stored checksum the sum is zero, as the parsers expect.
-        assert_eq!(checksum(&[0x08, 0x00, 0x39, 0x0f, 0xbe, 0xef, 0x00, 0x01]), 0);
+        assert_eq!(
+            checksum(&[0x08, 0x00, 0x39, 0x0f, 0xbe, 0xef, 0x00, 0x01]),
+            0
+        );
         // Boundary: an empty byte slice.
         assert_eq!(checksum(&[]), 0xffff);
     }
@@ -439,7 +445,10 @@ mod tests {
         assert_eq!(checksum(&[0x01, 0x02, 0x03]), 0xfbfd);
         assert_eq!(checksum(&[0x01]), 0xfeff);
         // Odd length with a carry fold across the whole chain.
-        assert_eq!(checksum(&[0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]), 0x00ff);
+        assert_eq!(
+            checksum(&[0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]),
+            0x00ff
+        );
         // Even length where the fold feeds a carry back in.
         assert_eq!(checksum(&[0xff, 0xff, 0x00, 0x01]), 0xfffe);
     }
