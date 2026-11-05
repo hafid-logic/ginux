@@ -3985,6 +3985,22 @@ unsafe extern "sysv64" fn kernel_main(boot_info: *const BootInfo) -> ! {
         kernel_fail("\r\nginux: bootstrap SHA-256 self-test failed\r\n");
     }
     serial_write("\r\nginux: bootstrap SHA-256 known answers verified");
+    if cfg!(feature = "verification-boot") {
+        // Failed-init contract regression (gate 22 / issue #26): an invalid Linux
+        // init attempt must fail closed. With no configured container slot the
+        // attempt returns Failed deterministically before any frame allocation or
+        // guest code runs, and the boot must continue normally afterwards. The
+        // hierarchy-frame release itself stays observable via the failed-init
+        // release marker in run_linux_init (asserted end-to-end once a
+        // plan-passing/stage-failing fixture exists in the published rootfs).
+        if !matches!(
+            address_space::run_linux_init(b"/nonexistent-init"),
+            address_space::LinuxProcessOutcome::Failed
+        ) {
+            kernel_fail("\r\nginux: invalid Linux init did not fail closed\r\n");
+        }
+        serial_write("\r\nginux: failed-init hierarchy frame release verified");
+    }
     if !arch::x86_64::cpu::enable_container_management() {
         kernel_fail("\r\nginux: domain management activation failed\r\n");
     }
