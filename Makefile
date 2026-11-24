@@ -95,26 +95,26 @@ check-security-findings:
 
 check: check-name check-instance-terminology check-security-inventory check-security-findings
 	cargo fmt --check
-	cargo clippy -p ginux-cli --all-targets -- -D warnings
-	cargo clippy -p ginux-allocator --all-targets -- -D warnings
-	cargo clippy -p ginux-oci --all-targets -- -D warnings
-	cargo clippy -p ginux-contract --all-targets -- -D warnings
-	cargo clippy -p ginux-core --all-targets -- -D warnings
-	cargo clippy -p ginux-instance --all-targets -- -D warnings
-	cargo clippy -p ginux-devices --all-targets -- -D warnings
-	cargo clippy -p ginux-fs-policy --all-targets -- -D warnings
-	cargo clippy -p ginux-init --bin ginux --target $(X86_TARGET) --release -- -D warnings
-	cargo clippy -p ginux-kernel-views --all-targets -- -D warnings
-	cargo clippy -p ginux-process --all-targets -- -D warnings
-	cargo clippy -p managed-payload --bin managed-payload --target $(X86_TARGET) --release -- -D warnings
-	cargo clippy -p baseline-runner --bin baseline-runner --target $(X86_TARGET) --release -- -D warnings
-	cargo clippy -p ginux-runtime --all-targets -- -D warnings
-	cargo clippy -p ginux-vfs --all-targets -- -D warnings
-	cargo clippy -p ginux-vfs-index --all-targets -- -D warnings
-	cargo clippy -p security-fuzzer --all-targets -- -D warnings
-	cargo clippy -p runtime-fixture --bin runtime-fixture --target $(X86_TARGET) --release -- -D warnings
-	cargo clippy -p process-native-fixture --bin process-native-fixture --target $(X86_TARGET) --release -- -D warnings
-	cargo run -q -p ginux-fs-policy --bin fs-policy-doc -- --check docs/fs-operation-inventory.md
+	RUSTFLAGS='' cargo clippy -p ginux-cli --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-allocator --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-oci --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-contract --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-core --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-instance --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-devices --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-fs-policy --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-init --bin ginux --target $(X86_TARGET) --release -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-kernel-views --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-process --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p managed-payload --bin managed-payload --target $(X86_TARGET) --release -- -D warnings
+	RUSTFLAGS='' cargo clippy -p baseline-runner --bin baseline-runner --target $(X86_TARGET) --release -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-runtime --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-vfs --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p ginux-vfs-index --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p security-fuzzer --all-targets -- -D warnings
+	RUSTFLAGS='' cargo clippy -p runtime-fixture --bin runtime-fixture --target $(X86_TARGET) --release -- -D warnings
+	RUSTFLAGS='' cargo clippy -p process-native-fixture --bin process-native-fixture --target $(X86_TARGET) --release -- -D warnings
+	RUSTFLAGS='' cargo run -q -p ginux-fs-policy --bin fs-policy-doc -- --check docs/fs-operation-inventory.md
 
 fs-policy-doc:
 	cargo run -q -p ginux-fs-policy --bin fs-policy-doc -- --write docs/fs-operation-inventory.md
@@ -123,8 +123,8 @@ contract-doc:
 	cargo run -q -p ginux-contract --bin contract-doc -- --write docs/abi-contract-coverage.md
 
 test-contract:
-	cargo test -p ginux-contract -p ginux-instance
-	cargo run -q -p ginux-contract --bin contract-doc -- --check docs/abi-contract-coverage.md
+	RUSTFLAGS='' cargo test -p ginux-contract -p ginux-instance
+	RUSTFLAGS='' cargo run -q -p ginux-contract --bin contract-doc -- --check docs/abi-contract-coverage.md
 
 test-contract-runtime: build instance-image-prepare
 	@./scripts/with-rocky-host.sh ./scripts/test-contract-runtime.sh
