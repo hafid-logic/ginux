@@ -2414,6 +2414,36 @@ policy = "stop"
 "#;
 
     #[test]
+    fn parse_section_rejects_malformed_headers_and_accepts_minimal() {
+        // minimal-length header of an unknown section: shape passes, section unknown
+        assert!(matches!(
+            parse_section(b"[a]"),
+            Err(ConfigError::UnknownSection)
+        ));
+        // too short
+        assert!(matches!(
+            parse_section(b"[]"),
+            Err(ConfigError::InvalidSyntax)
+        ));
+        // missing closing bracket
+        assert!(matches!(
+            parse_section(b"[audit"),
+            Err(ConfigError::InvalidSyntax)
+        ));
+        // nested opening bracket inside the name
+        assert!(matches!(
+            parse_section(b"[a[b]"),
+            Err(ConfigError::InvalidSyntax)
+        ));
+        // known sections still resolve
+        assert!(matches!(parse_section(b"[audit]"), Ok(Section::Audit)));
+        assert!(matches!(
+            parse_section(b"[instance]"),
+            Ok(Section::Instance)
+        ));
+    }
+
+    #[test]
     fn parses_and_normalizes_versioned_config() {
         let config = InstanceConfig::parse(VALID.as_bytes()).unwrap();
         assert_eq!(config.schema_version, 1);
