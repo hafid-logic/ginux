@@ -965,4 +965,28 @@ mod tests {
         registry.read(1, fd, &mut buf2).unwrap();
         assert_ne!(buf, buf2);
     }
+
+    #[test]
+    fn block_backend_is_empty_tracks_length_exactly() {
+        let empty = MemoryBlock {
+            bytes: Vec::new(),
+            flushes: 0,
+            closed: false,
+        };
+        assert!(empty.is_empty());
+        assert_eq!(empty.len(), 0);
+        let one = MemoryBlock {
+            bytes: vec![0u8],
+            flushes: 0,
+            closed: false,
+        };
+        assert!(!one.is_empty());
+        assert_eq!(one.len(), 1);
+        let many = MemoryBlock {
+            bytes: vec![0u8; 8],
+            flushes: 0,
+            closed: false,
+        };
+        assert!(!many.is_empty());
+    }
 }
