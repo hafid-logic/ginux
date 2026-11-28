@@ -3251,4 +3251,27 @@ failure = "stop"
             .unwrap();
         assert_eq!(c.contract_deny.as_slice().len(), 1);
     }
+
+    #[test]
+    fn override_policy_channels_devices_process_kernel_apply_exactly() {
+        let mut c = InstanceConfig::parse(VALID.as_bytes()).unwrap();
+        c.apply_override(b"contract.devices.read", b"[\"/dev/null\"]")
+            .unwrap();
+        assert_eq!(c.device_read.as_slice().len(), 1);
+        assert_eq!(c.device_read.as_slice()[0].as_bytes(), b"/dev/null");
+        c.apply_override(b"contract.devices.write", b"[\"/dev/zero\"]")
+            .unwrap();
+        assert_eq!(c.device_write.as_slice().len(), 1);
+        c.apply_override(b"contract.devices.create", b"[\"/dev/custom\"]")
+            .unwrap();
+        assert_eq!(c.device_create.as_slice().len(), 1);
+        assert!(c.filesystem_device_nodes);
+        c.apply_override(b"contract.process.signals", b"[\"signal.kill\"]")
+            .unwrap();
+        assert_eq!(c.process_signals.as_slice().len(), 1);
+        c.apply_override(b"contract.kernel.proc_read", b"[\"/proc/**\"]")
+            .unwrap();
+        assert_eq!(c.kernel_proc_read.as_slice().len(), 1);
+        assert_eq!(c.kernel_proc_read.as_slice()[0].as_bytes(), b"/proc/**");
+    }
 }
