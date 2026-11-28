@@ -2009,6 +2009,26 @@ mod tests {
     }
 
     #[test]
+    fn exec_group_replaces_leader_and_clears_only_same_tgid_threads() {
+        let mut table: ProcessTable<8> = ProcessTable::new();
+        let init = table.create_init(Credentials::root()).unwrap();
+        let leader = table.fork(init).unwrap();
+        // a second independent task must survive the group exec
+        let bystander = table.fork(init).unwrap();
+        let before_b = table.view(bystander).unwrap();
+        let (id, epoch) = table.exec_group(leader).unwrap();
+        assert_eq!(id.pid, leader.pid);
+        assert!(epoch >= 1);
+        let after = table.view(id).unwrap();
+        assert_eq!(after.state, TaskState::Running);
+        assert_eq!(after.exec_epoch, epoch);
+        // bystander untouched: still present with same identity
+        let after_b = table.view(bystander).unwrap();
+        assert_eq!(after_b.id.pid, before_b.id.pid);
+        assert_eq!(after_b.tgid, before_b.tgid);
+    }
+
+    #[test]
     fn eventfd_and_futex_have_bounded_linux_style_results() {
         let mut event = EventFd::new(0, false);
         assert_eq!(event.read(), Err(ProcessError::WouldBlock));
