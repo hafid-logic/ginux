@@ -601,6 +601,38 @@ mod tests {
     }
 
     #[test]
+    fn identity_hostname_read_and_pid_uts_namespace_links_are_exact() {
+        let (tasks, count) = fixture();
+        let identity = IdentityView {
+            hostname: b"instance-a",
+            machine_id: b"0123456789abcdef0123456789abcdef",
+            boot_id: b"11111111-2222-3333-4444-555555555555",
+        };
+        let identities = IdentityFs::new(
+            &tasks[..count],
+            identity,
+            NamespaceView {
+                mount: 101,
+                pid: 102,
+                uts: 103,
+                cgroup: 104,
+            },
+        );
+        let mut output = [0u8; 128];
+        let len = identities.read(b"/etc/hostname", &mut output).unwrap();
+        assert_eq!(&output[..len], b"instance-a\n");
+        let len = identities.readlink(b"/proc/1/ns/pid", &mut output).unwrap();
+        assert_eq!(&output[..len], b"pid:[102]");
+        let len = identities.readlink(b"/proc/1/ns/uts", &mut output).unwrap();
+        assert_eq!(&output[..len], b"uts:[103]");
+        // unknown namespace leaf still NotFound
+        assert_eq!(
+            identities.readlink(b"/proc/1/ns/net", &mut output),
+            Err(ViewError::NotFound)
+        );
+    }
+
+    #[test]
     fn sysfs_projects_only_assigned_virtual_devices() {
         let mut registry: DeviceRegistry<6, 2> = DeviceRegistry::new();
         registry
