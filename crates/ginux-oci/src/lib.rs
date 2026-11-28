@@ -794,6 +794,23 @@ mod tests {
     }
 
     #[test]
+    fn safe_whiteout_dir_rejects_non_normal_components_and_missing_leaf_is_ok() {
+        let root = temp_dir("whiteout-components");
+        // parent with a CurDir component is rejected (non-Normal)
+        assert!(safe_whiteout_dir(&root, Path::new("./sub")).is_err());
+        // parent with ParentDir is rejected
+        assert!(safe_whiteout_dir(&root, Path::new("../escape")).is_err());
+        // absolute prefix is rejected
+        assert!(safe_whiteout_dir(&root, Path::new("/abs")).is_err());
+        // plain missing directories are tolerated (created later by the layer)
+        let ok = safe_whiteout_dir(&root, Path::new("fresh/deeper")).unwrap();
+        assert_eq!(ok, root.join("fresh/deeper"));
+        // empty parent resolves to the root itself
+        assert_eq!(safe_whiteout_dir(&root, Path::new("")).unwrap(), root);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
     fn blob_downloads_only_on_a_miss_and_repairs_verified_content() {
         let cache = temp_dir("repair");
         let bytes = b"image content".as_slice();
