@@ -1803,6 +1803,19 @@ mod tests {
     }
 
     #[test]
+    fn shell_code_pins_128_plus_signal_and_exit_passthrough() {
+        // exited children pass their code through unchanged
+        assert_eq!(ChildStatus::Exited(0).shell_code(), 0);
+        assert_eq!(ChildStatus::Exited(7).shell_code(), 7);
+        assert_eq!(ChildStatus::Exited(255).shell_code(), 255);
+        // signaled children report the shell convention 128 + signal
+        assert_eq!(ChildStatus::Signaled(1).shell_code(), 129);
+        assert_eq!(ChildStatus::Signaled(9).shell_code(), 137);
+        assert_eq!(ChildStatus::Signaled(15).shell_code(), 143);
+        assert_eq!(ChildStatus::Signaled(64).shell_code(), 192);
+    }
+
+    #[test]
     fn an_init_thread_reaps_orphans_after_the_init_leader_exits() {
         let mut table: ProcessTable<6> = ProcessTable::new();
         let init = table.create_init(Credentials::root()).unwrap();
