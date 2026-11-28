@@ -3228,4 +3228,27 @@ failure = "stop"
         let partial = VALID.replace("default = \"deny\"\n", "");
         assert!(InstanceConfig::parse(partial.as_bytes()).is_err());
     }
+
+    #[test]
+    fn override_filesystem_lists_and_contract_default_apply_exactly() {
+        let mut c = InstanceConfig::parse(VALID.as_bytes()).unwrap();
+        c.apply_override(b"contract.filesystem.read", b"[\"/etc/**\"]")
+            .unwrap();
+        assert_eq!(c.filesystem_read.as_slice().len(), 1);
+        c.apply_override(b"contract.filesystem.write", b"[\"/tmp/**\"]")
+            .unwrap();
+        assert_eq!(c.filesystem_write.as_slice().len(), 1);
+        c.apply_override(b"contract.filesystem.create", b"[\"/tmp/new\"]")
+            .unwrap();
+        assert_eq!(c.filesystem_create.as_slice().len(), 1);
+        c.apply_override(b"contract.filesystem.deny", b"[\"/etc/shadow\"]")
+            .unwrap();
+        assert_eq!(c.filesystem_write_deny.as_slice().len(), 1);
+        c.apply_override(b"contract.allow", b"[\"syscall.clock_*\"]")
+            .unwrap();
+        assert_eq!(c.contract_allow.as_slice().len(), 1);
+        c.apply_override(b"contract.deny", b"[\"syscall.mount*\"]")
+            .unwrap();
+        assert_eq!(c.contract_deny.as_slice().len(), 1);
+    }
 }
