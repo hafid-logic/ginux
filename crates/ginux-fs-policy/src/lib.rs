@@ -2373,4 +2373,30 @@ mod tests {
         // zero-hash fallback to 1 is preserved
         assert_ne!(identity_token(b""), 0);
     }
+
+    #[test]
+    fn rights_constants_pin_exact_bit_positions() {
+        assert_eq!(Rights::LOOKUP, Rights(1 << 0));
+        assert_eq!(Rights::READ, Rights(1 << 1));
+        assert_eq!(Rights::WRITE, Rights(1 << 2));
+        assert_eq!(Rights::CREATE, Rights(1 << 3));
+        assert_eq!(Rights::METADATA, Rights(1 << 4));
+        assert_eq!(Rights::EXECUTE, Rights(1 << 5));
+        // pairwise distinct: no two rights may share a bit
+        let all = [
+            Rights::LOOKUP,
+            Rights::READ,
+            Rights::WRITE,
+            Rights::CREATE,
+            Rights::METADATA,
+            Rights::EXECUTE,
+        ];
+        for (i, a) in all.iter().enumerate() {
+            for (j, b) in all.iter().enumerate() {
+                if i != j {
+                    assert!(!a.contains(*b));
+                }
+            }
+        }
+    }
 }
