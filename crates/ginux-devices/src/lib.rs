@@ -989,4 +989,49 @@ mod tests {
         };
         assert!(!many.is_empty());
     }
+
+    #[test]
+    fn network_view_minor_is_one_based_and_receive_ring_wraps_in_order() {
+        let mut registry: DeviceRegistry<8, 8> = DeviceRegistry::new();
+        registry
+            .assign(
+                1,
+                30,
+                DeviceName::new(b"net0").unwrap(),
+                DeviceKind::Network,
+            )
+            .unwrap();
+        registry
+            .assign(
+                1,
+                31,
+                DeviceName::new(b"net1").unwrap(),
+                DeviceKind::Network,
+            )
+            .unwrap();
+        let pad = DeviceView {
+            name: DeviceName::new(b"pad").unwrap(),
+            kind: DeviceKind::Null,
+            major: 9,
+            minor: 9,
+        };
+        let mut out = [pad; 2];
+        assert_eq!(registry.views(1, &mut out), 2);
+        // network views: major 0, minor = slot index + 1 (one-based)
+        assert_eq!((out[0].major, out[0].minor), (0, 1));
+        assert_eq!((out[1].major, out[1].minor), (0, 2));
+        // ring wrap: fill 2, drain 1, refill 1 -> FIFO order preserved across wrap
+        let mut net: IsolatedNetwork<2> = IsolatedNetwork::new();
+        net.send(b"aa").unwrap();
+        net.send(b"bb").unwrap();
+        let mut buf = [0u8; 2];
+        assert_eq!(net.receive(&mut buf), Ok(2));
+        assert_eq!(&buf, b"aa");
+        net.send(b"cc").unwrap();
+        assert_eq!(net.receive(&mut buf), Ok(2));
+        assert_eq!(&buf, b"bb");
+        assert_eq!(net.receive(&mut buf), Ok(2));
+        assert_eq!(&buf, b"cc");
+        assert_eq!(net.receive(&mut buf), Err(DeviceError::QueueEmpty));
+    }
 }
