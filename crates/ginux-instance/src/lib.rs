@@ -3251,4 +3251,20 @@ failure = "stop"
             .unwrap();
         assert_eq!(c.contract_deny.as_slice().len(), 1);
     }
+
+    #[test]
+    fn parse_field_duplicate_detection_pins_contract_allow_deny_bits() {
+        let dup_allow = VALID.replace("allow = []", "allow = []\nallow = [\"syscall.clock_*\"]");
+        assert_eq!(
+            InstanceConfig::parse(dup_allow.as_bytes()),
+            Err(ConfigError::DuplicateField)
+        );
+        let dup_deny = VALID.replace("deny = []", "deny = []\ndeny = [\"syscall.mount*\"]");
+        assert_eq!(
+            InstanceConfig::parse(dup_deny.as_bytes()),
+            Err(ConfigError::DuplicateField)
+        );
+        // single occurrence still parses cleanly
+        assert!(InstanceConfig::parse(VALID.as_bytes()).is_ok());
+    }
 }
